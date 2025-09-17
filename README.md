@@ -13,8 +13,11 @@ Dart is single-threaded by default, but you can use Isolates for true parallel e
 Key points:
 
 Isolate.spawn() for running independent tasks.
+
 ReceivePort / SendPort for communication between isolates.
+
 Use compute() in Flutter for lightweight background work.
+
 Useful for CPU-heavy work (encryption, parsing JSON, image manipulation).
 
 * Dart runs **single-threaded** (one event loop per isolate).
