@@ -328,6 +328,326 @@ void main() async {
   * **Covariance, contravariance, and invariance** in Dart types.
 * Important when designing reusable libraries (like your own `Repository<T>`).
 
+# 🔹 Generics & Type System in Dart (Deep Dive)
+
+---
+
+## 1. **Why Generics?**
+
+Generics let you write **reusable code** that works with **different types** while still keeping **type safety**.
+
+Without generics:
+
+```dart
+List items = [];  // Can store anything
+items.add(10);
+items.add("hello"); // No compile-time error
+
+int first = items[0]; // Runtime error possible
+```
+
+With generics:
+
+```dart
+List<int> numbers = [];
+numbers.add(10);
+// numbers.add("hello"); // ❌ Compile-time error
+
+int first = numbers[0]; // ✅ Safe
+```
+
+👉 Generics improve:
+
+* **Code reusability**
+* **Compile-time safety**
+* **Readability**
+
+---
+
+## 2. **Basic Generic Types**
+
+Dart’s core collection classes are generic:
+
+* **List<T>**
+
+```dart
+List<String> names = ["Alice", "Bob"];
+```
+
+* **Map\<K, V>**
+
+```dart
+Map<String, int> ages = {"Alice": 25, "Bob": 30};
+```
+
+* **Set<T>**
+
+```dart
+Set<int> uniqueIds = {1, 2, 3};
+```
+
+👉 Here `T`, `K`, and `V` are type parameters.
+
+---
+
+## 3. **Creating Your Own Generic Classes**
+
+```dart
+class Box<T> {
+  T value;
+  Box(this.value);
+
+  void update(T newValue) {
+    value = newValue;
+  }
+}
+
+void main() {
+  Box<int> intBox = Box(10);
+  Box<String> strBox = Box("Hello");
+
+  print(intBox.value); // 10
+  print(strBox.value); // Hello
+}
+```
+
+* `Box<int>` is a different type than `Box<String>`.
+* Compiler ensures only correct types are stored.
+
+---
+
+## 4. **Bounded Generics (`<T extends SomeClass>`)**
+
+Sometimes you want to restrict what types are allowed.
+
+```dart
+class Animal {
+  void makeSound() => print("Some sound");
+}
+
+class Dog extends Animal {
+  @override
+  void makeSound() => print("Bark");
+}
+
+class Cat extends Animal {
+  @override
+  void makeSound() => print("Meow");
+}
+
+// Generic with bound
+class Cage<T extends Animal> {
+  T animal;
+  Cage(this.animal);
+
+  void hearSound() {
+    animal.makeSound(); // Safe! Guaranteed to exist
+  }
+}
+
+void main() {
+  Cage<Dog> dogCage = Cage(Dog());
+  dogCage.hearSound(); // Bark
+
+  // Cage<String> wrong = Cage("text"); ❌ Compile-time error
+}
+```
+
+👉 Use bounded generics when:
+
+* You want to **limit types**.
+* You want to **access methods/properties** of the bound type.
+
+---
+
+## 5. **Covariance, Contravariance, and Invariance**
+
+This is where Dart’s type system gets deeper. Let’s break it down.
+
+### ✅ Covariance
+
+> A generic type can accept a **subtype** of its parameter.
+
+```dart
+List<Dog> dogs = [Dog(), Dog()];
+List<Animal> animals = dogs; // ❌ Error in Dart
+```
+
+In Dart, `List<Dog>` is **not** a subtype of `List<Animal>`.
+Why? Because if Dart allowed it:
+
+```dart
+animals.add(Cat()); // But animals is actually a List<Dog> internally!
+```
+
+This would break type safety.
+
+👉 Instead, Dart supports **covariant return types** in function overrides.
+
+```dart
+class Animal {}
+class Dog extends Animal {}
+
+class AnimalHouse {
+  Animal get animal => Animal();
+}
+
+class DogHouse extends AnimalHouse {
+  @override
+  Dog get animal => Dog(); // ✅ Covariant return allowed
+}
+```
+
+---
+
+### 🔁 Contravariance
+
+> A type parameter can accept a **supertype**.
+
+This happens with **function parameters**.
+
+```dart
+typedef AnimalHandler = void Function(Animal);
+
+void handleDog(Dog dog) => print("Handling a dog");
+
+// Dog handler is assignable to Animal handler
+AnimalHandler handler = handleDog; // ✅ Contravariant
+handler(Dog()); 
+```
+
+Here, a function expecting `Dog` can be used where `Animal` is expected, because it’s safe — `Dog` is a subtype of `Animal`.
+
+---
+
+### ⛔ Invariance
+
+Most generics in Dart are **invariant** (neither covariant nor contravariant).
+
+That means:
+
+```dart
+List<Dog> ≠ List<Animal>
+```
+
+If you need flexibility → use `Iterable<T>` or wildcards with `covariant` in your own APIs.
+
+---
+
+## 6. **Using `covariant` Keyword**
+
+You can explicitly allow covariance in method parameters.
+
+```dart
+class Animal {}
+class Dog extends Animal {}
+
+class Trainer {
+  void train(covariant Animal animal) {
+    print("Training ${animal.runtimeType}");
+  }
+}
+
+class DogTrainer extends Trainer {
+  @override
+  void train(Dog dog) { // ✅ Covariant override
+    print("Training a dog only");
+  }
+}
+```
+
+---
+
+## 7. **Generics in Functions**
+
+You can also define generic methods.
+
+```dart
+T first<T>(List<T> items) {
+  return items[0];
+}
+
+void main() {
+  print(first<int>([1, 2, 3])); // 1
+  print(first<String>(["a", "b"])); // a
+}
+```
+
+With constraints:
+
+```dart
+T maxValue<T extends num>(T a, T b) {
+  return a > b ? a : b;
+}
+```
+
+---
+
+## 8. **Generics in Repositories (Practical Example)**
+
+Common in Flutter apps with data layers.
+
+```dart
+abstract class Repository<T> {
+  Future<T> getById(String id);
+  Future<List<T>> getAll();
+  Future<void> save(T item);
+}
+
+class User {
+  String name;
+  User(this.name);
+}
+
+class UserRepository implements Repository<User> {
+  @override
+  Future<User> getById(String id) async => User("Alice");
+
+  @override
+  Future<List<User>> getAll() async => [User("Alice"), User("Bob")];
+
+  @override
+  Future<void> save(User user) async {
+    print("Saved ${user.name}");
+  }
+}
+```
+
+👉 This allows you to create `Repository<User>`, `Repository<Product>`, etc.
+Useful for **clean architecture & reusable libraries**.
+
+---
+
+## 9. **Generic Extensions**
+
+You can extend functionality on all generics.
+
+```dart
+extension FirstOrNull<T> on List<T> {
+  T? firstOrNull() => isEmpty ? null : this[0];
+}
+
+void main() {
+  print([].firstOrNull()); // null
+  print([1, 2, 3].firstOrNull()); // 1
+}
+```
+
+---
+
+# 🔑 Key Takeaways
+
+* **Generics** provide type safety + reusability.
+* **Bounded generics** let you restrict to specific types (`<T extends SomeClass>`).
+* **Variance** concepts:
+
+  * Covariant = subtypes allowed for return values.
+  * Contravariant = supertypes allowed for function params.
+  * Invariant = strict match (default for Dart generics).
+* **Repositories & libraries** benefit greatly from generics.
+* **Use extensions + generic functions** for utility.
+
+
 ---
 
 ### 4. **Extension Methods & Operator Overloading**
