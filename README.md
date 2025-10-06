@@ -784,3 +784,112 @@ void main() {
 
 ---
 
+## 🧩 Step-by-Step: From Code Commit → PR / MR
+
+---
+
+### **1️⃣ Clone the Repository**
+
+If you haven’t already:
+
+```bash
+git clone https://github.com/org-or-user/repo-name.git
+cd repo-name
+```
+
+---
+
+### **2️⃣ Create a New Branch**
+
+Always create a branch for your new feature or bugfix:
+
+```bash
+git checkout -b feature/add-login-screen
+```
+
+✅ Good practice: use lowercase + hyphens and prefix with `feature/`, `bugfix/`, or `hotfix/`.
+
+---
+
+### **3️⃣ Make Your Code Changes**
+
+Edit your files (e.g., `login_screen.dart`, `api_service.js`, etc.).
+
+---
+
+### **4️⃣ Stage and Commit**
+
+```bash
+git status                  # view changes
+git add .                   # stage all modified files
+git commit -m "Added login screen UI and API integration"
+```
+
+---
+
+### **5️⃣ Push Your Branch to Remote**
+
+```bash
+git push origin feature/add-login-screen
+```
+
+* This uploads your local branch to the remote repository.
+* The first push automatically creates a remote branch.
+
+---
+
+### **6️⃣ Create the Pull Request (GitHub) or Merge Request (GitLab)**
+
+#### 🟣 On **GitHub**
+
+1. Go to your repo on GitHub.
+2. You’ll see a message like:
+   **“Compare & pull request”** — click it.
+3. Choose:
+
+   * **Base branch** → `main` (or `develop`)
+   * **Compare branch** → `feature/add-login-screen`
+4. Add:
+
+   * Title: `Added Login Screen`
+   * Description: what you changed, screenshots, etc.
+5. Click **“Create Pull Request”**.
+
+---
+
+#### 🔴 On **GitLab**
+
+1. Go to **Merge Requests → New Merge Request**.
+2. Select:
+
+   * **Source branch** → your feature branch
+   * **Target branch** → `develop` or `main`
+3. Add title, description, and assign reviewers.
+4. Click **“Create merge request”**.
+
+---
+
+### **7️⃣ Review & Merge**
+
+* Reviewer checks your code.
+* If approved → click **“Merge”**.
+* Branch can then be **deleted** after merging:
+
+  ```bash
+  git branch -d feature/add-login-screen
+  git push origin --delete feature/add-login-screen
+  ```
+
+---
+
+## ⚙️ Summary Workflow (CLI + Web)
+
+```bash
+git checkout -b feature/add-login-screen
+# make changes
+git add .
+git commit -m "Added login screen"
+git push origin feature/add-login-screen
+```
+
+
